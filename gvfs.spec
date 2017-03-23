@@ -3,7 +3,7 @@
 Summary: Backends for the gio framework in GLib
 Name: gvfs
 Version: 1.22.4
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3 and LGPLv2+ and BSD and MPLv1.1
 Group: System Environment/Libraries
 URL: http://www.gtk.org
@@ -386,6 +386,9 @@ update-desktop-database >&/dev/null || :
 %{_datadir}/gvfs/remote-volume-monitors/goa.monitor
 
 %changelog
+* Thu Mar 23 2017 Simone Caronni <negativo17@gmail.com> - 1.22.4-9
+- Rebuild for libbluray update.
+
 * Mon Jun 27 2016 Ondrej Holy <oholy@redhat.com> - 1.22.4-8
 - Update translations
 - Resolves: #1304254
