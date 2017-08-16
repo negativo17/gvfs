@@ -5,7 +5,7 @@
 
 Name: gvfs
 Version: 1.30.4
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -418,6 +418,9 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Wed Aug 16 2017 Simone Caronni <negativo17@gmail.com> - 1.30.4-4
+- Rebuild for libbluray update.
+
 * Tue Apr 18 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-3
 - Handle SecurID password prompt
 - Resolves: #1440256
