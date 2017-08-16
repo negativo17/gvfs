@@ -1,64 +1,55 @@
-%global glib2_version 2.37.0
+%define with_nfs 0
 
-Summary: Backends for the gio framework in GLib
+%global glib2_version 2.49.3
+%global libgdata_version 0.17.3
+
 Name: gvfs
-Version: 1.22.4
-Release: 9%{?dist}
-License: GPLv3 and LGPLv2+ and BSD and MPLv1.1
-Group: System Environment/Libraries
-URL: http://www.gtk.org
+Version: 1.30.4
+Release: 3%{?dist}
+Summary: Backends for the gio framework in GLib
 
-Source: http://download.gnome.org/sources/gvfs/1.22/gvfs-%{version}.tar.xz
+License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
+URL: https://wiki.gnome.org/Projects/gvfs
+Source0: https://download.gnome.org/sources/gvfs/1.30/gvfs-%{version}.tar.xz
+
+# http://bugzilla.gnome.org/show_bug.cgi?id=567235
+Patch0: gvfs-archive-integration.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1440256
+Patch1: handle-securid-password-prompt.patch
+
 BuildRequires: pkgconfig
 BuildRequires: glib2-devel >= %{glib2_version}
 # for post-install update-gio-modules and overall functionality
 Requires: glib2%{?_isa} >= %{glib2_version}
 BuildRequires: dbus-glib-devel
+BuildRequires: gcr-devel
 BuildRequires: /usr/bin/ssh
 BuildRequires: libcdio-paranoia-devel
 BuildRequires: libgudev1-devel
 BuildRequires: libsoup-devel >= 2.34.0
 BuildRequires: pkgconfig(avahi-client) pkgconfig(avahi-glib)
 BuildRequires: libsecret-devel
-BuildRequires: intltool
 BuildRequires: gettext-devel
 BuildRequires: libudisks2-devel
-Requires: udisks2
-BuildRequires: expat-devel
 BuildRequires: libbluray-devel
 BuildRequires: systemd-devel >= 44
 BuildRequires: libxslt-devel
 BuildRequires: gtk3-devel
 BuildRequires: docbook-style-xsl
-
-Requires(post): desktop-file-utils
-Requires(postun): desktop-file-utils
+BuildRequires: polkit-devel
+BuildRequires: libcap-devel
 
 # The patch touches Makefile.am files:
 BuildRequires: automake autoconf
 BuildRequires: libtool
 
-# http://bugzilla.gnome.org/show_bug.cgi?id=567235
-Patch0: gvfs-archive-integration.patch
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
+Requires: glib2%{?_isa} >= %{glib2_version}
+Requires: udisks2
 
-# http://bugzilla.gnome.org/show_bug.cgi?id=1174716
-Patch1: gvfs-1.22.5-Translation-updates.patch
-Patch2: gvfs-translations-3.14.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1229178
-Patch3: gvfs-1.22.5-gvfs-open-add-hack-to-close-up-dbus-daemon-race.patch
-Patch4: gvfs-1.22.5-gvfs-open-Do-not-use-g_steal_pointer.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1230974
-Patch5: gvfs-1.25.4-udisks2-Handle-libsecret-error-properly.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1221695
-Patch6: gvfs-1.22.5-proxy-volume-monitor-Guard-access-to-the-internal-ca.patch
-Patch7: gvfs-1.22.5-proxy-volume-monitor-Properly-handle-failure-to-crea.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1304254
-Patch8: gvfs-1.22.4-EL7.3_translations.patch
-Patch9: gvfs-1.22.4-EL7.3_translations_for_ko.patch
+Requires(post): desktop-file-utils
+Requires(postun): desktop-file-utils
 
 Obsoletes: gnome-mount <= 0.8
 Obsoletes: gnome-mount-nautilus-properties <= 0.8
@@ -69,10 +60,18 @@ The gvfs package provides backend implementations for the gio
 framework in GLib. It includes ftp, sftp, cifs.
 
 
+%package  client
+Summary:  Client modules of backends for the gio framework in GLib
+Conflicts: %{name} < 1.25.2-2
+
+%description client
+The gvfs package provides client modules of backend implementations for the gio
+framework in GLib.
+
+
 %package devel
 Summary: Development files for gvfs
-Group: Development/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 
 %description devel
 The gvfs-devel package contains headers and other files that are
@@ -81,8 +80,8 @@ required to develop applications using gvfs.
 
 %package fuse
 Summary: FUSE support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: fuse-devel
 Requires: fuse
 
@@ -93,8 +92,8 @@ to access the gvfs filesystems.
 
 %package smb
 Summary: Windows fileshare support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: libsmbclient-devel >= 3.2.0-1.pre2.8
 BuildRequires: libtalloc-devel >= 1.3.0-0
 
@@ -105,8 +104,8 @@ shares (SMB) to applications using gvfs.
 
 %package archive
 Summary: Archiving support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: libarchive-devel >= 2.7.1-1
 
 %description archive
@@ -116,8 +115,8 @@ as well as ISO images, to applications using gvfs.
 
 %package gphoto2
 Summary: gphoto2 support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: libgphoto2-devel
 BuildRequires: libusb-devel
 BuildRequires: libexif-devel
@@ -131,8 +130,8 @@ media players (Media Transfer Protocol) to applications using gvfs.
 %ifnarch s390 s390x
 %package afc
 Summary: AFC support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 Requires: usbmuxd
 BuildRequires: libimobiledevice-devel >= 0.9.7
 
@@ -144,8 +143,8 @@ including phones and music players to applications using gvfs.
 
 %package afp
 Summary: AFP support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: libgcrypt-devel >= 1.2.2
 # this should ensure having this new subpackage installed on upgrade from older versions
 Obsoletes: %{name} < 1.9.4-1
@@ -158,57 +157,68 @@ to applications using gvfs.
 
 %package mtp
 Summary: MTP support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: libmtp-devel >= 1.1.0
 
 %description mtp
 This package provides support for reading and writing files on
 MTP based devices (Media Transfer Protocol) to applications using gvfs.
 
+%if 0%{?with_nfs}
+%package nfs
+Summary: NFS support for gvfs
+Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
+BuildRequires: libnfs-devel >= 1.9.7
+
+%description nfs
+This package provides support for reading and writing files on
+NFS network shares (Network File System) to applications using gvfs.
+%endif
 
 %package goa
 Summary: GOA support for gvfs
-Group: System Environment/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-client%{?_isa} = %{version}-%{release}
 BuildRequires: gnome-online-accounts-devel >= 3.7.1
+BuildRequires: libgdata-devel >= %{libgdata_version}
+Requires: libgdata%{?_isa} >= %{libgdata_version}
 
 %description goa
 This package provides seamless integration with gnome-online-accounts
 file services.
 
+%package  tests
+Summary:  Tests for the gvfs package
+Requires: %{name}%{?_isa} = %{version}-%{release}
+
+%description tests
+The gvfs-tests package contains tests that can be used to verify
+the functionality of the installed gvfs package.
 
 %prep
 %setup -q
 %patch0 -p1 -b .archive-integration
-%patch1 -p1 -b .translation-updates
-%patch2 -p1 -b .translation-updates2
-%patch3 -p1 -b .gvfs-open-fix-dbus
-%patch4 -p1 -b .gvfs-open-fix-build
-%patch5 -p1 -b .handle-libsecret-errors
-%patch6 -p1 -b .proxy-volume-monitor-guard-caches
-%patch7 -p1 -b .proxy-volume-monitor-properly-handle-failure
-%patch8 -p1 -b .translations
-%patch9 -p1 -b .translations-for-ko
+%patch1 -p1 -b .handle-securid-password-prompt
 
 # Needed for gvfs-0.2.1-archive-integration.patch
-libtoolize --force  || :
-aclocal  || :
-autoheader  || :
-automake  || :
-autoconf  || :
+autoreconf -fi
 
 %build
 %configure \
+%if ! 0%{?with_nfs}
+        --disable-nfs \
+%endif
         --disable-hal \
         --disable-gdu \
         --enable-udisks2 \
         --enable-keyring \
-        --disable-obexftp
+        --enable-installed-tests
 make %{?_smp_mflags} V=1
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
+%make_install
 
 rm $RPM_BUILD_ROOT%{_libdir}/gvfs/*.la
 rm $RPM_BUILD_ROOT%{_libdir}/gio/modules/*.la
@@ -258,10 +268,16 @@ killall -USR1 gvfsd >&/dev/null || :
 %postun archive
 update-desktop-database >&/dev/null || :
 
-%files -f gvfs.lang
-%doc AUTHORS COPYING COPYING.GPL3 NEWS README
+%if 0%{?with_nfs}
+%post nfs
+killall -USR1 gvfsd >&/dev/null || :
+%endif
+
+
+%files
 %dir %{_datadir}/gvfs
 %dir %{_datadir}/gvfs/mounts
+%{_datadir}/gvfs/mounts/admin.mount
 %{_datadir}/gvfs/mounts/sftp.mount
 %{_datadir}/gvfs/mounts/trash.mount
 %{_datadir}/gvfs/mounts/cdda.mount
@@ -274,21 +290,20 @@ update-desktop-database >&/dev/null || :
 %{_datadir}/gvfs/mounts/dns-sd.mount
 %{_datadir}/gvfs/mounts/network.mount
 %{_datadir}/gvfs/mounts/ftp.mount
+%{_datadir}/gvfs/mounts/ftps.mount
 %{_datadir}/gvfs/mounts/recent.mount
-%{_datadir}/dbus-1/services/org.gtk.Private.UDisks2VolumeMonitor.service
-%{_datadir}/dbus-1/services/gvfs-daemon.service
-%{_datadir}/dbus-1/services/gvfs-metadata.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.Daemon.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.Metadata.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service
+%dir %{_datadir}/gvfs/remote-volume-monitors
 %{_datadir}/gvfs/remote-volume-monitors/udisks2.monitor
 %{_datadir}/GConf/gsettings/*.convert
 %{_datadir}/glib-2.0/schemas/*.xml
-%dir %{_datadir}/bash-completion
-%dir %{_datadir}/bash-completion/completions
-%{_datadir}/bash-completion/completions/gvfs*
-%{_libdir}/gvfs/libgvfscommon.so
+%{_datadir}/polkit-1/actions/org.gtk.vfs.file-operations.policy
+%{_datadir}/polkit-1/rules.d/org.gtk.vfs.file-operations.rules
 %{_libdir}/gvfs/libgvfsdaemon.so
-%{_libdir}/gio/modules/libgioremote-volume-monitor.so
-%{_libdir}/gio/modules/libgvfsdbus.so
 %{_libexecdir}/gvfsd
+%{_libexecdir}/gvfsd-admin
 %{_libexecdir}/gvfsd-ftp
 %{_libexecdir}/gvfsd-sftp
 %{_libexecdir}/gvfsd-trash
@@ -303,29 +318,26 @@ update-desktop-database >&/dev/null || :
 %{_libexecdir}/gvfsd-metadata
 %{_libexecdir}/gvfs-udisks2-volume-monitor
 %{_libexecdir}/gvfsd-recent
-%{_bindir}/gvfs-cat
-%{_bindir}/gvfs-copy
-%{_bindir}/gvfs-info
-%{_bindir}/gvfs-less
-%{_bindir}/gvfs-ls
-%{_bindir}/gvfs-mime
-%{_bindir}/gvfs-mkdir
-%{_bindir}/gvfs-monitor-dir
-%{_bindir}/gvfs-monitor-file
-%{_bindir}/gvfs-mount
-%{_bindir}/gvfs-move
-%{_bindir}/gvfs-open
-%{_bindir}/gvfs-rename
-%{_bindir}/gvfs-rm
-%{_bindir}/gvfs-save
-%{_bindir}/gvfs-trash
-%{_bindir}/gvfs-tree
-%{_bindir}/gvfs-set-attribute
-%doc %{_mandir}/man1/gvfs-*
-%doc %{_mandir}/man1/gvfsd.1.gz
-%doc %{_mandir}/man1/gvfsd-metadata.1.gz
-%doc %{_mandir}/man7/gvfs.7.gz
-%{_prefix}/lib/tmpfiles.d/gvfsd-fuse-tmpfiles.conf
+%{_mandir}/man1/gvfsd.1*
+%{_mandir}/man1/gvfsd-metadata.1*
+%{_userunitdir}/gvfs-daemon.service
+%{_userunitdir}/gvfs-metadata.service
+%{_userunitdir}/gvfs-udisks2-volume-monitor.service
+
+%files client -f gvfs.lang
+%{!?_licensedir:%global license %%doc}
+%license COPYING COPYING.GPL3
+%doc AUTHORS NEWS README
+%dir %{_datadir}/bash-completion
+%dir %{_datadir}/bash-completion/completions
+%{_datadir}/bash-completion/completions/gvfs*
+%dir %{_libdir}/gvfs
+%{_libdir}/gvfs/libgvfscommon.so
+%{_libdir}/gio/modules/libgioremote-volume-monitor.so
+%{_libdir}/gio/modules/libgvfsdbus.so
+%{_mandir}/man7/gvfs.7*
+%{_bindir}/gvfs-*
+%{_mandir}/man1/gvfs-*
 
 %files devel
 %dir %{_includedir}/gvfs-client
@@ -336,7 +348,8 @@ update-desktop-database >&/dev/null || :
 
 %files fuse
 %{_libexecdir}/gvfsd-fuse
-%doc %{_mandir}/man1/gvfsd-fuse.1.gz
+%{_mandir}/man1/gvfsd-fuse.1*
+%{_tmpfilesdir}/gvfsd-fuse-tmpfiles.conf
 
 %files smb
 %{_libexecdir}/gvfsd-smb
@@ -355,16 +368,18 @@ update-desktop-database >&/dev/null || :
 %{_libexecdir}/gvfsd-gphoto2
 %{_datadir}/gvfs/mounts/gphoto2.mount
 %{_libexecdir}/gvfs-gphoto2-volume-monitor
-%{_datadir}/dbus-1/services/org.gtk.Private.GPhoto2VolumeMonitor.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.GPhoto2VolumeMonitor.service
 %{_datadir}/gvfs/remote-volume-monitors/gphoto2.monitor
+%{_userunitdir}/gvfs-gphoto2-volume-monitor.service
 
 %ifnarch s390 s390x
 %files afc
 %{_libexecdir}/gvfsd-afc
 %{_datadir}/gvfs/mounts/afc.mount
 %{_libexecdir}/gvfs-afc-volume-monitor
-%{_datadir}/dbus-1/services/org.gtk.Private.AfcVolumeMonitor.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.AfcVolumeMonitor.service
 %{_datadir}/gvfs/remote-volume-monitors/afc.monitor
+%{_userunitdir}/gvfs-afc-volume-monitor.service
 %endif
 
 %files afp
@@ -377,17 +392,49 @@ update-desktop-database >&/dev/null || :
 %{_libexecdir}/gvfsd-mtp
 %{_datadir}/gvfs/mounts/mtp.mount
 %{_libexecdir}/gvfs-mtp-volume-monitor
-%{_datadir}/dbus-1/services/org.gtk.Private.MTPVolumeMonitor.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
 %{_datadir}/gvfs/remote-volume-monitors/mtp.monitor
+%{_userunitdir}/gvfs-mtp-volume-monitor.service
+
+%if 0%{?with_nfs}
+%files nfs
+%{_libexecdir}/gvfsd-nfs
+# for privileged ports
+%caps(cap_net_bind_service=ep) %{_libexecdir}/gvfsd-nfs
+%{_datadir}/gvfs/mounts/nfs.mount
+%endif
 
 %files goa
 %{_libexecdir}/gvfs-goa-volume-monitor
-%{_datadir}/dbus-1/services/org.gtk.Private.GoaVolumeMonitor.service
+%{_datadir}/dbus-1/services/org.gtk.vfs.GoaVolumeMonitor.service
 %{_datadir}/gvfs/remote-volume-monitors/goa.monitor
+%{_datadir}/gvfs/mounts/google.mount
+%{_libexecdir}/gvfsd-google
+%{_userunitdir}/gvfs-goa-volume-monitor.service
+
+%files tests
+%dir %{_libexecdir}/installed-tests
+%{_libexecdir}/installed-tests/gvfs
+%{_datadir}/installed-tests
 
 %changelog
-* Thu Mar 23 2017 Simone Caronni <negativo17@gmail.com> - 1.22.4-9
-- Rebuild for libbluray update.
+* Tue Apr 18 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-3
+- Handle SecurID password prompt
+- Resolves: #1440256
+
+* Tue Mar 28 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-2
+- Add explicit gvfs-client requirements
+- Resolves: #1386993
+
+* Tue Mar 28 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-1
+- Update to 1.30.4
+- Resolves: #1386993
+
+* Thu Feb 16 2017 Ondrej Holy <oholy@redhat.com> - 1.30.3-1
+- Update to 1.30.3
+- Disable nfs support (#1387270)
+- Revert desktop database scriplets
+- Resolves: #1386993, #1399343, #1306146, #1259746, #1344317
 
 * Mon Jun 27 2016 Ondrej Holy <oholy@redhat.com> - 1.22.4-8
 - Update translations
