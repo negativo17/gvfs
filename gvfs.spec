@@ -5,7 +5,7 @@
 
 Name: gvfs
 Version: 1.30.4
-Release: 4%{?dist}
+Release: 6%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -17,6 +17,12 @@ Patch0: gvfs-archive-integration.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1440256
 Patch1: handle-securid-password-prompt.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1465302
+Patch2: network-Do-not-spam-journal-by-useless-warnings.patch
+Patch3: Add-missing-newline-characters-in-g_debug.patch
+Patch4: network-Check-variable-before-dereferencing.patch
+Patch5: client-Propagate-error-from-create_mount_tracker_pro.patch
 
 BuildRequires: pkgconfig
 BuildRequires: glib2-devel >= %{glib2_version}
@@ -201,6 +207,10 @@ the functionality of the installed gvfs package.
 %setup -q
 %patch0 -p1 -b .archive-integration
 %patch1 -p1 -b .handle-securid-password-prompt
+%patch2 -p1 -b .network-Do-not-spam-journal-by-useless-warnings.patch
+%patch3 -p1 -b .Add-missing-newline-characters-in-g_debug
+%patch4 -p1 -b .network-check-variable-before-dereferencing
+%patch5 -p1 -b .client-Propagate-error-from-create_mount_tracker_pro
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -418,8 +428,14 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Wed Aug 16 2017 Simone Caronni <negativo17@gmail.com> - 1.30.4-4
-- Rebuild for libbluray update.
+* Wed May 02 2018 Simone Caronni <negativo17@gmail.com> - 1.30.4-6
+- Rebuild for libblueray udpate.
+
+* Fri Nov 10 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-5
+- Fix network backend crashes when creating proxy failed (#1465302)
+
+* Wed Oct 11 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-4
+- Rebuild against newer libgphoto2 (#1500216)
 
 * Tue Apr 18 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-3
 - Handle SecurID password prompt

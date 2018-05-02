@@ -1,0 +1,31 @@
+From d659151a1f8b74fc9fc82689d6710f876a6ba5db Mon Sep 17 00:00:00 2001
+From: Ondrej Holy <oholy@redhat.com>
+Date: Wed, 25 Jan 2017 13:28:25 +0100
+Subject: [PATCH 1/2] network: Check variable before dereferencing
+
+It seems that the error variable may be NULL at this point in
+some cases as per the bug reports, but I don't really have any
+idea why. Let's check the error variable before dereferencing
+and see if it helps to reduce the number of bug reports...
+
+https://bugzilla.gnome.org/show_bug.cgi?id=777737
+---
+ daemon/gvfsbackendnetwork.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/daemon/gvfsbackendnetwork.c b/daemon/gvfsbackendnetwork.c
+index c6a103d1..ad9d68e8 100644
+--- a/daemon/gvfsbackendnetwork.c
++++ b/daemon/gvfsbackendnetwork.c
+@@ -359,7 +359,7 @@ recompute_files (GVfsBackendNetwork *backend)
+             {
+ 	      char *uri = g_file_get_uri (server_file);
+               g_debug ("Couldn't create directory monitor on %s. Error: %s\n",
+-	     		 uri, error->message);
++                       uri, error ? error->message : "");
+ 	      g_free (uri);
+               g_clear_error (&error);
+             }
+-- 
+2.15.0
+

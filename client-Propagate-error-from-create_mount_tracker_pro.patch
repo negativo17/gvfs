@@ -1,0 +1,84 @@
+From 6a62f4a28cc1457f489329ec115828d48db6c511 Mon Sep 17 00:00:00 2001
+From: Ondrej Holy <oholy@redhat.com>
+Date: Wed, 25 Jan 2017 15:14:52 +0100
+Subject: [PATCH 2/2] client: Propagate error from create_mount_tracker_proxy
+
+Prevent GDaemonFile methods failures without error being set.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=777737
+---
+ client/gdaemonvfs.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/client/gdaemonvfs.c b/client/gdaemonvfs.c
+index 0cf11e6d..632538a1 100644
+--- a/client/gdaemonvfs.c
++++ b/client/gdaemonvfs.c
+@@ -41,6 +41,7 @@
+ #include <glib/gstdio.h>
+ #include <gvfsdbus.h>
+ #include "gvfsutils.h"
++#include "gvfsdaemondbus.h"
+ 
+ typedef struct  {
+   char *type;
+@@ -562,23 +563,23 @@ find_string (GPtrArray *array, const char *find_me)
+ }
+ 
+ static GVfsDBusMountTracker *
+-create_mount_tracker_proxy ()
++create_mount_tracker_proxy (GError **error)
+ {
+   GVfsDBusMountTracker *proxy;
+-  GError *error;
++  GError *local_error;
+ 
+-  error = NULL;
++  local_error = NULL;
+   proxy = gvfs_dbus_mount_tracker_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
+                                                           G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS | G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                                           G_VFS_DBUS_DAEMON_NAME,
+                                                           G_VFS_DBUS_MOUNTTRACKER_PATH,
+                                                           NULL,
+-                                                          &error);
++                                                          &local_error);
+   if (proxy == NULL)
+     {
+       g_warning ("Error creating proxy: %s (%s, %d)\n",
+-                  error->message, g_quark_to_string (error->domain), error->code);
+-      g_error_free (error);
++                  local_error->message, g_quark_to_string (local_error->domain), local_error->code);
++      _g_propagate_error_stripped (error, local_error);
+     }
+   
+   return proxy;
+@@ -599,7 +600,7 @@ fill_mountable_info (GDaemonVfs *vfs)
+   gint32 default_port;
+   gboolean host_is_inet;
+   
+-  proxy = create_mount_tracker_proxy ();
++  proxy = create_mount_tracker_proxy (NULL);
+   if (proxy == NULL)
+     return;
+ 
+@@ -948,7 +949,7 @@ _g_daemon_vfs_get_mount_info_sync (GMountSpec *spec,
+   if (info != NULL)
+     return info;
+   
+-  proxy = create_mount_tracker_proxy ();
++  proxy = create_mount_tracker_proxy (error);
+   if (proxy == NULL)
+     return NULL;
+   
+@@ -980,7 +981,7 @@ _g_daemon_vfs_get_mount_info_by_fuse_sync (const char *fuse_path,
+   info = lookup_mount_info_by_fuse_path_in_cache (fuse_path);
+   if (!info)
+     {
+-      proxy = create_mount_tracker_proxy ();
++      proxy = create_mount_tracker_proxy (NULL);
+       if (proxy == NULL)
+         return NULL;
+ 
+-- 
+2.15.0
+
