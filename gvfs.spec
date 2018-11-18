@@ -24,7 +24,7 @@
 
 Name: gvfs
 Version: 1.36.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -433,6 +433,9 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Sun Nov 18 2018 Simone Caronni <negativo17@gmail.com> - 1.36.2-2
+- Rebuild for libbluray update.
+
 * Tue May 08 2018 Kalev Lember <klember@redhat.com> - 1.36.2-1
 - Update to 1.36.2
 - Resolves: #1569268
