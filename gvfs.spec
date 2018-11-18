@@ -1,50 +1,58 @@
 %define with_nfs 0
 
-%global glib2_version 2.49.3
-%global libgdata_version 0.17.3
+%global avahi_version 0.6
+%global fuse_version 2.8.0
+%global gettext_version 0.19.4
+%global glib2_version 2.51.0
+%global goa_version 3.17.1
+%global gudev_version 147
+%global libarchive_version 3.0.22
+%global libcdio_paranoia_version 0.78.2
+%global libgcrypt_version 1.2.2
+%global libgdata_version 0.17.9
+%global libgphoto2_version 2.5.0
+%global libimobiledevice_version 1.2
+%global libmtp_version 1.1.12
+%global libnfs_version 1.9.8
+%global libplist_version 0.15
+%global libsmbclient_version 3.4.0
+%global libsoup_version 2.42.0
+%global libusb_version 1.0.21
+%global systemd_version 206
+%global talloc_version 1.3.0
+%global udisks2_version 1.97
 
 Name: gvfs
-Version: 1.30.4
-Release: 6%{?dist}
+Version: 1.36.2
+Release: 1%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
 URL: https://wiki.gnome.org/Projects/gvfs
-Source0: https://download.gnome.org/sources/gvfs/1.30/gvfs-%{version}.tar.xz
+Source0: https://download.gnome.org/sources/gvfs/1.36/gvfs-%{version}.tar.xz
 
 # http://bugzilla.gnome.org/show_bug.cgi?id=567235
 Patch0: gvfs-archive-integration.patch
 
-# https://bugzilla.redhat.com/show_bug.cgi?id=1440256
-Patch1: handle-securid-password-prompt.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1465302
-Patch2: network-Do-not-spam-journal-by-useless-warnings.patch
-Patch3: Add-missing-newline-characters-in-g_debug.patch
-Patch4: network-Check-variable-before-dereferencing.patch
-Patch5: client-Propagate-error-from-create_mount_tracker_pro.patch
-
 BuildRequires: pkgconfig
-BuildRequires: glib2-devel >= %{glib2_version}
-# for post-install update-gio-modules and overall functionality
-Requires: glib2%{?_isa} >= %{glib2_version}
-BuildRequires: dbus-glib-devel
-BuildRequires: gcr-devel
+BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
+BuildRequires: pkgconfig(dbus-glib-1)
+BuildRequires: pkgconfig(gcr-3)
 BuildRequires: /usr/bin/ssh
-BuildRequires: libcdio-paranoia-devel
-BuildRequires: libgudev1-devel
-BuildRequires: libsoup-devel >= 2.34.0
-BuildRequires: pkgconfig(avahi-client) pkgconfig(avahi-glib)
-BuildRequires: libsecret-devel
-BuildRequires: gettext-devel
-BuildRequires: libudisks2-devel
-BuildRequires: libbluray-devel
-BuildRequires: systemd-devel >= 44
-BuildRequires: libxslt-devel
-BuildRequires: gtk3-devel
+BuildRequires: pkgconfig(libcdio_paranoia) >= %{libcdio_paranoia_version}
+BuildRequires: pkgconfig(gudev-1.0) >= %{gudev_version}
+BuildRequires: pkgconfig(libsoup-2.4) >= %{libsoup_version}
+BuildRequires: pkgconfig(avahi-client) >= %{avahi_version}
+BuildRequires: pkgconfig(avahi-glib) >= %{avahi_version}
+BuildRequires: pkgconfig(libsecret-1)
+BuildRequires: gettext-devel >= %{gettext_version}
+BuildRequires: pkgconfig(udisks2) >= %{udisks2_version}
+BuildRequires: pkgconfig(libbluray)
+BuildRequires: systemd-devel >= %{systemd_version}
+BuildRequires: pkgconfig(libxslt)
 BuildRequires: docbook-style-xsl
-BuildRequires: polkit-devel
-BuildRequires: libcap-devel
+BuildRequires: pkgconfig(polkit-gobject-1)
+BuildRequires: pkgconfig(libcap)
 
 # The patch touches Makefile.am files:
 BuildRequires: automake autoconf
@@ -52,14 +60,14 @@ BuildRequires: libtool
 
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
 Requires: glib2%{?_isa} >= %{glib2_version}
-Requires: udisks2
+Requires: udisks2 >= %{udisks2_version}
 
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
 Obsoletes: gnome-mount <= 0.8
 Obsoletes: gnome-mount-nautilus-properties <= 0.8
-Obsoletes: gvfs-obexftp < 1.16.3-3
+Obsoletes: gvfs-obexftp < 1.17.91-2
 
 %description
 The gvfs package provides backend implementations for the gio
@@ -88,8 +96,8 @@ required to develop applications using gvfs.
 Summary: FUSE support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: fuse-devel
-Requires: fuse
+BuildRequires: pkgconfig(fuse) >= %{fuse_version}
+Requires: fuse >= %{fuse_version}
 
 %description fuse
 This package provides support for applications not using gio
@@ -100,8 +108,8 @@ to access the gvfs filesystems.
 Summary: Windows fileshare support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libsmbclient-devel >= 3.2.0-1.pre2.8
-BuildRequires: libtalloc-devel >= 1.3.0-0
+BuildRequires: libsmbclient-devel >= %{libsmbclient_version}
+BuildRequires: pkgconfig(talloc) >= %{talloc_version}
 
 %description smb
 This package provides support for reading and writing files on windows
@@ -112,7 +120,7 @@ shares (SMB) to applications using gvfs.
 Summary: Archiving support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libarchive-devel >= 2.7.1-1
+BuildRequires: pkgconfig(libarchive) >= %{libarchive_version}
 
 %description archive
 This package provides support for accessing files inside Zip and Tar archives,
@@ -123,8 +131,8 @@ as well as ISO images, to applications using gvfs.
 Summary: gphoto2 support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libgphoto2-devel
-BuildRequires: libusb-devel
+BuildRequires: pkgconfig(libgphoto2) >= %{libgphoto2_version}
+BuildRequires: libusb-devel >= %{libusb_version}
 BuildRequires: libexif-devel
 
 %description gphoto2
@@ -139,7 +147,8 @@ Summary: AFC support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
 Requires: usbmuxd
-BuildRequires: libimobiledevice-devel >= 0.9.7
+BuildRequires: pkgconfig(libimobiledevice-1.0) >= %{libimobiledevice_version}
+BuildRequires: pkgconfig(libplist) >= %{libplist_version}
 
 %description afc
 This package provides support for reading files on mobile devices
@@ -151,7 +160,7 @@ including phones and music players to applications using gvfs.
 Summary: AFP support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libgcrypt-devel >= 1.2.2
+BuildRequires: libgcrypt-devel >= %{libgcrypt_version}
 # this should ensure having this new subpackage installed on upgrade from older versions
 Obsoletes: %{name} < 1.9.4-1
 
@@ -165,30 +174,32 @@ to applications using gvfs.
 Summary: MTP support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libmtp-devel >= 1.1.0
+BuildRequires: pkgconfig(libmtp) >= %{libmtp_version}
 
 %description mtp
 This package provides support for reading and writing files on
 MTP based devices (Media Transfer Protocol) to applications using gvfs.
+
 
 %if 0%{?with_nfs}
 %package nfs
 Summary: NFS support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: libnfs-devel >= 1.9.7
+BuildRequires: pkgconfig(libnfs) >= %{libnfs_version}
 
 %description nfs
 This package provides support for reading and writing files on
 NFS network shares (Network File System) to applications using gvfs.
 %endif
 
+
 %package goa
 Summary: GOA support for gvfs
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-client%{?_isa} = %{version}-%{release}
-BuildRequires: gnome-online-accounts-devel >= 3.7.1
-BuildRequires: libgdata-devel >= %{libgdata_version}
+BuildRequires: pkgconfig(goa-1.0) >= %{goa_version}
+BuildRequires: pkgconfig(libgdata) >= %{libgdata_version}
 Requires: libgdata%{?_isa} >= %{libgdata_version}
 
 %description goa
@@ -206,11 +217,6 @@ the functionality of the installed gvfs package.
 %prep
 %setup -q
 %patch0 -p1 -b .archive-integration
-%patch1 -p1 -b .handle-securid-password-prompt
-%patch2 -p1 -b .network-Do-not-spam-journal-by-useless-warnings.patch
-%patch3 -p1 -b .Add-missing-newline-characters-in-g_debug
-%patch4 -p1 -b .network-check-variable-before-dereferencing
-%patch5 -p1 -b .client-Propagate-error-from-create_mount_tracker_pro
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -220,7 +226,6 @@ autoreconf -fi
 %if ! 0%{?with_nfs}
         --disable-nfs \
 %endif
-        --disable-hal \
         --disable-gdu \
         --enable-udisks2 \
         --enable-keyring \
@@ -283,6 +288,9 @@ update-desktop-database >&/dev/null || :
 killall -USR1 gvfsd >&/dev/null || :
 %endif
 
+%post afp
+killall -USR1 gvfsd >&/dev/null || :
+
 
 %files
 %dir %{_datadir}/gvfs
@@ -338,9 +346,6 @@ killall -USR1 gvfsd >&/dev/null || :
 %{!?_licensedir:%global license %%doc}
 %license COPYING COPYING.GPL3
 %doc AUTHORS NEWS README
-%dir %{_datadir}/bash-completion
-%dir %{_datadir}/bash-completion/completions
-%{_datadir}/bash-completion/completions/gvfs*
 %dir %{_libdir}/gvfs
 %{_libdir}/gvfs/libgvfscommon.so
 %{_libdir}/gio/modules/libgioremote-volume-monitor.so
@@ -428,8 +433,9 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Wed May 02 2018 Simone Caronni <negativo17@gmail.com> - 1.30.4-6
-- Rebuild for libblueray udpate.
+* Tue May 08 2018 Kalev Lember <klember@redhat.com> - 1.36.2-1
+- Update to 1.36.2
+- Resolves: #1569268
 
 * Fri Nov 10 2017 Ondrej Holy <oholy@redhat.com> - 1.30.4-5
 - Fix network backend crashes when creating proxy failed (#1465302)
