@@ -1,0 +1,89 @@
+diff --git a/configure.ac b/configure.ac
+index 3b5836ff..daeee728 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -546,6 +546,11 @@ if test "x$enable_samba" != "xno"; then
+   if test "x$msg_samba" = "xyes"; then
+     PKG_CHECK_MODULES([SAMBA], [smbclient])
+     AC_DEFINE([HAVE_SAMBA], 1, [Define to 1 if you have the samba libraries])
++
++    AC_CHECK_LIB(smbclient, smbc_setOptionProtocols,
++        AC_DEFINE(HAVE_SMBC_SETOPTIONPROTOCOLS, 1, [Define to 1 if smbc_setOptionProtocols() is available]),
++        []
++    )
+   fi
+ fi
+ 
+diff --git a/daemon/gvfsbackendsmbbrowse.c b/daemon/gvfsbackendsmbbrowse.c
+index f08d2988..3b11883e 100644
+--- a/daemon/gvfsbackendsmbbrowse.c
++++ b/daemon/gvfsbackendsmbbrowse.c
+@@ -45,6 +45,7 @@
+ #include "gvfskeyring.h"
+ #include "gmounttracker.h"
+ #include "gvfsbackendsmbprivate.h"
++#include "gvfsutils.h"
+ 
+ #include <libsmbclient.h>
+ 
+@@ -847,6 +848,47 @@ do_mount (GVfsBackend *backend,
+   else
+     op_backend->server = g_strdup (op_backend->mounted_server);
+ 
++#ifdef HAVE_SMBC_SETOPTIONPROTOCOLS
++  /* Force NT1 protocol version if server can't be resolved (i.e. is not
++   * hostname, nor IP address). This is needed for workgroup support, because
++   * "client max protocol" has been changed from NT1 to SMB3 in recent samba
++   * versions.
++   */
++
++  if (op_backend->server != NULL)
++    {
++      GResolver *resolver;
++      GList *addresses;
++      GError *error = NULL;
++      gchar *server;
++
++      resolver = g_resolver_get_default ();
++
++      /* IPv6 server includes brackets in GMountSpec, GResolver doesn't */
++      if (gvfs_is_ipv6 (op_backend->server))
++        server = g_strndup (op_backend->server + 1, strlen (op_backend->server) - 2);
++      else
++        server = g_strdup (op_backend->server);
++
++      addresses = g_resolver_lookup_by_name (resolver, server, NULL, &error);
++      if (addresses == NULL)
++        {
++          if (error != NULL)
++            {
++              g_debug ("%s\n", error->message);
++              g_error_free (error);
++            }
++
++          g_debug ("Forcing NT1 protocol version\n");
++          smbc_setOptionProtocols (smb_context, "NT1", "NT1");
++        }
++
++      g_resolver_free_addresses (addresses);
++      g_object_unref (resolver);
++      g_free (server);
++    }
++#endif
++
+   icon = NULL;
+   symbolic_icon = NULL;
+   if (op_backend->server == NULL)
+diff --git a/meson.build b/meson.build
+index 34600188..3a876172 100644
+--- a/meson.build
++++ b/meson.build
+@@ -416,6 +416,8 @@ config_h.set10('HAVE_LIBUSB', enable_libusb)
+ enable_samba = get_option('smb')
+ if enable_samba
+   smbclient_dep = dependency('smbclient')
++
++  config_h.set('HAVE_SMBC_SETOPTIONPROTOCOLS', cc.has_function('smbc_setOptionProtocols', dependencies: smbclient_dep))
+ endif
+ 
+ # *** Check for libarchive ***

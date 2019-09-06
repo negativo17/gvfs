@@ -24,7 +24,7 @@
 
 Name: gvfs
 Version: 1.36.2
-Release: 2%{?dist}
+Release: 4%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -33,6 +33,15 @@ Source0: https://download.gnome.org/sources/gvfs/1.36/gvfs-%{version}.tar.xz
 
 # http://bugzilla.gnome.org/show_bug.cgi?id=567235
 Patch0: gvfs-archive-integration.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1632960
+Patch1: daemon-Prevent-spawning-new-daemons-if-outgoing-oper.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1673887
+Patch2: admin-Prevent-access-if-any-authentication-agent-isn.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1619719
+Patch3: smbbrowse-Force-NT1-protocol-version-for-workgroup-s.patch
 
 BuildRequires: pkgconfig
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
@@ -217,6 +226,9 @@ the functionality of the installed gvfs package.
 %prep
 %setup -q
 %patch0 -p1 -b .archive-integration
+%patch1 -p1 -b .daemon-Prevent-spawning-new-daemons-if-outgoing-oper
+%patch2 -p1 -b .admin-Prevent-access-if-any-authentication-agent-isn
+%patch3 -p1 -b .smbbrowse-Force-NT1-protocol-version-for-workgroup-s
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -433,8 +445,15 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Sun Nov 18 2018 Simone Caronni <negativo17@gmail.com> - 1.36.2-2
+* Fri Sep 06 2019 Simone Caronni <negativo17@gmail.com> - 1.36.2-4
 - Rebuild for libbluray update.
+
+* Fri Feb 15 2019 Ondrej Holy <oholy@redhat.com> - 1.36.2-3
+- Force NT1 protocol version for workgroup support (#1619719)
+
+* Thu Jan 31 2019 Ondrej Holy <oholy@redhat.com> - 1.36.2-2
+- Prevent spawning new daemons if outgoing operation exists (#1632960)
+- CVE-2019-3827: Prevent access if any authentication agent isn't available (#1673887)
 
 * Tue May 08 2018 Kalev Lember <klember@redhat.com> - 1.36.2-1
 - Update to 1.36.2
