@@ -24,7 +24,7 @@
 
 Name: gvfs
 Version: 1.36.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -42,6 +42,9 @@ Patch2: admin-Prevent-access-if-any-authentication-agent-isn.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1619719
 Patch3: smbbrowse-Force-NT1-protocol-version-for-workgroup-s.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1758237
+Patch4: udisks2-Fix-crashes-caused-by-missing-source-tag.patch
 
 BuildRequires: pkgconfig
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
@@ -229,6 +232,7 @@ the functionality of the installed gvfs package.
 %patch1 -p1 -b .daemon-Prevent-spawning-new-daemons-if-outgoing-oper
 %patch2 -p1 -b .admin-Prevent-access-if-any-authentication-agent-isn
 %patch3 -p1 -b .smbbrowse-Force-NT1-protocol-version-for-workgroup-s
+%patch4 -p1 -b .udisks2-Fix-crashes-caused-by-missing-source-tag
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -445,8 +449,11 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Fri Sep 06 2019 Simone Caronni <negativo17@gmail.com> - 1.36.2-4
+* Thu Dec 17 2020 Simone Caronni <negativo17@gmail.com> - 1.36.2-5
 - Rebuild for libbluray update.
+
+* Wed Apr 22 2020 Ondrej Holy <oholy@redhat.com> - 1.36.2-4
+- Fix udisks2 volume monitor crashes when stopping drive (rhbz#1758237)
 
 * Fri Feb 15 2019 Ondrej Holy <oholy@redhat.com> - 1.36.2-3
 - Force NT1 protocol version for workgroup support (#1619719)
