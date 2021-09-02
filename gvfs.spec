@@ -24,7 +24,7 @@
 
 Name: gvfs
 Version: 1.36.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -45,6 +45,10 @@ Patch3: smbbrowse-Force-NT1-protocol-version-for-workgroup-s.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1758237
 Patch4: udisks2-Fix-crashes-caused-by-missing-source-tag.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1944813
+Patch5: udisks2-Fix-leak-when-updating-fstab-volumes.patch
+Patch6: udisks2-Fix-leaks-of-drive-icons-description.patch
 
 BuildRequires: pkgconfig
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
@@ -233,6 +237,8 @@ the functionality of the installed gvfs package.
 %patch2 -p1 -b .admin-Prevent-access-if-any-authentication-agent-isn
 %patch3 -p1 -b .smbbrowse-Force-NT1-protocol-version-for-workgroup-s
 %patch4 -p1 -b .udisks2-Fix-crashes-caused-by-missing-source-tag
+%patch5 -p1 -b .udisks2-Fix-leak-when-updating-fstab-volumes
+%patch6 -p1 -b .udisks2-Fix-leaks-of-drive-icons-description
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -449,8 +455,11 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Thu Dec 17 2020 Simone Caronni <negativo17@gmail.com> - 1.36.2-5
+* Thu Sep 02 2021 Simone Caronni <negativo17@gmail.com> - 1.36.2-6
 - Rebuild for libbluray update.
+
+* Fri Jul 2 2021 Ondrej Holy <oholy@redhat.com> - 1.36.2-5
+- Fix udisks2 volume monitor leaks (rhbz#1944813)
 
 * Wed Apr 22 2020 Ondrej Holy <oholy@redhat.com> - 1.36.2-4
 - Fix udisks2 volume monitor crashes when stopping drive (rhbz#1758237)

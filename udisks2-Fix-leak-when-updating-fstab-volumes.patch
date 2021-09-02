@@ -1,0 +1,30 @@
+From 91f34aa87f6089c8d8437310854b83af3b6ba05b Mon Sep 17 00:00:00 2001
+From: Ondrej Holy <oholy@redhat.com>
+Date: Mon, 2 Mar 2020 09:50:38 +0100
+Subject: [PATCH] udisks2: Fix leak when updating fstab volumes
+
+`g_list_remove_link` is used when filtering out mountpoints, but the
+GList element is not consequently freed. Let's use `g_list_delete_link`
+to not leak that element.
+
+https://gitlab.gnome.org/GNOME/gvfs/issues/452
+---
+ monitor/udisks2/gvfsudisks2volumemonitor.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/monitor/udisks2/gvfsudisks2volumemonitor.c b/monitor/udisks2/gvfsudisks2volumemonitor.c
+index 37c81fcf..b200457d 100644
+--- a/monitor/udisks2/gvfsudisks2volumemonitor.c
++++ b/monitor/udisks2/gvfsudisks2volumemonitor.c
+@@ -1623,7 +1623,7 @@ update_fstab_volumes (GVfsUDisks2VolumeMonitor  *monitor,
+           have_udisks_volume_for_mount_point (monitor, mount_point) ||
+           !mount_point_has_device (monitor, mount_point))
+         {
+-          new_mount_points = g_list_remove_link (new_mount_points, l);
++          new_mount_points = g_list_delete_link (new_mount_points, l);
+           g_unix_mount_point_free (mount_point);
+         }
+     }
+-- 
+2.31.1
+

@@ -1,0 +1,31 @@
+From 93fcef03e322bee9cfde27494e510755f48d7e5a Mon Sep 17 00:00:00 2001
+From: Ondrej Holy <oholy@redhat.com>
+Date: Mon, 2 Mar 2020 13:18:27 +0100
+Subject: [PATCH] udisks2: Fix leaks of drive icons/description
+
+Drive icons/description are leaked currently when also media
+icon/description is available. Let's add missing `g_clear_object`
+resp. `g_free` calls to fix those leaks.
+
+https://gitlab.gnome.org/GNOME/gvfs/issues/452
+---
+ monitor/udisks2/gvfsudisks2volume.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/monitor/udisks2/gvfsudisks2volume.c b/monitor/udisks2/gvfsudisks2volume.c
+index 89a9f29d..8c0794d7 100644
+--- a/monitor/udisks2/gvfsudisks2volume.c
++++ b/monitor/udisks2/gvfsudisks2volume.c
+@@ -407,6 +407,9 @@ update_volume (GVfsUDisks2Volume *volume)
+           g_free (media_desc);
+           g_clear_object (&media_icon);
+           g_clear_object (&media_symbolic_icon);
++          g_free (drive_desc);
++          g_clear_object (&drive_icon);
++          g_clear_object (&drive_symbolic_icon);
+ 
+           /* Only automount drives attached to the same seat as we're running on
+            */
+-- 
+2.31.1
+
