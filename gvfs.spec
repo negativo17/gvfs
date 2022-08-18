@@ -24,7 +24,7 @@
 
 Name: gvfs
 Version: 1.36.2
-Release: 6%{?dist}
+Release: 8%{?dist}
 Summary: Backends for the gio framework in GLib
 
 License: GPLv3 and LGPLv2+ and BSD and MPLv2.0
@@ -49,6 +49,9 @@ Patch4: udisks2-Fix-crashes-caused-by-missing-source-tag.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1944813
 Patch5: udisks2-Fix-leak-when-updating-fstab-volumes.patch
 Patch6: udisks2-Fix-leaks-of-drive-icons-description.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=2093816
+Patch7: smb-Use-O_RDWR-to-fix-fstat-when-writing.patch
 
 BuildRequires: pkgconfig
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
@@ -239,6 +242,7 @@ the functionality of the installed gvfs package.
 %patch4 -p1 -b .udisks2-Fix-crashes-caused-by-missing-source-tag
 %patch5 -p1 -b .udisks2-Fix-leak-when-updating-fstab-volumes
 %patch6 -p1 -b .udisks2-Fix-leaks-of-drive-icons-description
+%patch7 -p1 -b .smb-Use-O_RDWR-to-fix-fstat-when-writing
 
 # Needed for gvfs-0.2.1-archive-integration.patch
 autoreconf -fi
@@ -455,8 +459,14 @@ killall -USR1 gvfsd >&/dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
-* Thu Sep 02 2021 Simone Caronni <negativo17@gmail.com> - 1.36.2-6
+* Thu Aug 18 2022 Simone Caronni <negativo17@gmail.com> - 1.36.2-8
 - Rebuild for libbluray update.
+
+* Thu Jun 23 2022 Ondrej Holy <oholy@redhat.com> - 1.36.2-7
+- Fix unapplied patch (#2093816)
+
+* Tue Jun 14 2022 Ondrej Holy <oholy@redhat.com> - 1.36.2-6
+- Use O_RDWR to fix fstat when writing on SMB share (#2093816)
 
 * Fri Jul 2 2021 Ondrej Holy <oholy@redhat.com> - 1.36.2-5
 - Fix udisks2 volume monitor leaks (rhbz#1944813)

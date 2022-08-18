@@ -1,0 +1,67 @@
+From 3f6f906c7c7b28dc30edb98200b6e13e1a513bb4 Mon Sep 17 00:00:00 2001
+From: Ondrej Holy <oholy@redhat.com>
+Date: Wed, 9 May 2018 12:54:59 +0200
+Subject: [PATCH] smb: Use O_RDWR to fix fstat when writing
+
+fstat fails with EINVAL on Windows servers if O_WRONLY is used to open
+(though it works properly on SAMBA servers). O_RDWR is needed to make
+it work. This causes issues when copying files over gvfsd-fuse among
+others.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=795805
+---
+ daemon/gvfsbackendsmb.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/daemon/gvfsbackendsmb.c b/daemon/gvfsbackendsmb.c
+index d4944197..9571fa0d 100644
+--- a/daemon/gvfsbackendsmb.c
++++ b/daemon/gvfsbackendsmb.c
+@@ -808,7 +808,7 @@ do_create (GVfsBackend *backend,
+   smbc_open = smbc_getFunctionOpen (op_backend->smb_context);
+   errno = 0;
+   file = smbc_open (op_backend->smb_context, uri,
+-		    O_CREAT|O_WRONLY|O_EXCL, 0666);
++                    O_CREAT|O_RDWR|O_EXCL, 0666);
+   g_free (uri);
+ 
+   if (file == NULL)
+@@ -850,7 +850,7 @@ do_append_to (GVfsBackend *backend,
+   smbc_open = smbc_getFunctionOpen (op_backend->smb_context);
+   errno = 0;
+   file = smbc_open (op_backend->smb_context, uri,
+-					O_CREAT|O_WRONLY|O_APPEND, 0666);
++                    O_CREAT|O_RDWR|O_APPEND, 0666);
+   g_free (uri);
+ 
+   if (file == NULL)
+@@ -916,7 +916,7 @@ open_tmpfile (GVfsBackendSmb *backend,
+     smbc_open = smbc_getFunctionOpen (backend->smb_context);
+     errno = 0;
+     file = smbc_open (backend->smb_context, tmp_uri,
+-		      O_CREAT|O_WRONLY|O_EXCL, 0666);
++                      O_CREAT|O_RDWR|O_EXCL, 0666);
+   } while (file == NULL && errno == EEXIST);
+ 
+   g_free (dir_uri);
+@@ -1040,7 +1040,7 @@ do_replace (GVfsBackend *backend,
+   
+   errno = 0;
+   file = smbc_open (op_backend->smb_context, uri,
+-		    O_CREAT|O_WRONLY|O_EXCL, 0);
++                    O_CREAT|O_RDWR|O_EXCL, 0);
+   if (file == NULL && errno != EEXIST)
+     {
+       int errsv = fixup_open_errno (errno);
+@@ -1110,7 +1110,7 @@ do_replace (GVfsBackend *backend,
+ 	  
+ 	  errno = 0;
+ 	  file = smbc_open (op_backend->smb_context, uri,
+-			    O_CREAT|O_WRONLY|O_TRUNC, 0);
++                            O_CREAT|O_RDWR|O_TRUNC, 0);
+ 	  if (file == NULL)
+ 	    {
+               int errsv = fixup_open_errno (errno);
+-- 
+2.35.3
+
